@@ -1,3 +1,10 @@
+# Termux-Aether LiteRT-LM
+
+Android ARM64 runtime builds for [Termux-Aether](https://github.com/wallentx/termux-aether-app), based on Google's LiteRT-LM.
+See [AETHER.md](AETHER.md) for the build, artifact contents, and device-validation status.
+
+---
+
 # LiteRT-LM
 
 LiteRT-LM is Google's **production-ready** orchestration layer to run LLMs with
