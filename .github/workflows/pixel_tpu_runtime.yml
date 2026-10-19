@@ -54,6 +54,13 @@ jobs:
       - name: Package runtime and provenance
         run: |
           set -x
+          test -f AETHER_VERSION
+          fork_version="$(cat AETHER_VERSION)"
+          if ! [[ "$fork_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[1-9][0-9]{3,}$ ]] || [ "$(wc -l < AETHER_VERSION)" -ne 1 ]; then
+            echo "AETHER_VERSION must contain one numeric major.minor.upstream-patch.aether-sequence version with sequence >= 1000" >&2
+            exit 1
+          fi
+          fork_tag="aether/v$fork_version"
           mkdir -p artifact
           cp bazel-bin/runtime/engine/litert_lm_main artifact/
           cp prebuilt/android_arm64/*.so artifact/
@@ -85,10 +92,13 @@ jobs:
             "$toolchain/llvm-readelf" -d "$binary" > "$binary.dynamic.txt"
           done
           git rev-parse HEAD > artifact/source-commit.txt
+          printf '%s\n' "$fork_version" > artifact/aether-fork-version.txt
+          printf '%s\n' "$fork_tag" > artifact/aether-fork-tag.txt
           printf '%s\n' "$LITERT_LM_REF" > artifact/upstream-base-commit.txt
-          cp WORKSPACE .bazelversion LICENSE artifact/
+          printf '%s\n' 'v0.17.1' > artifact/upstream-base-version.txt
+          cp AETHER_VERSION WORKSPACE .bazelversion LICENSE artifact/
           "$toolchain/clang" --version > artifact/compiler.txt
-          printf 'LiteRT-LM v0.17.1\nNDK %s\nBazelisk 1.28.1\n' "$NDK_VERSION" > artifact/build-version.txt
+          printf 'Termux-Aether LiteRT-LM fork release %s\nFork version %s\nUpstream LiteRT-LM v0.17.1 (%s)\nNDK %s\nBazelisk 1.28.1\n' "$fork_tag" "$fork_version" "$LITERT_LM_REF" "$NDK_VERSION" > artifact/build-version.txt
           (cd artifact && sha256sum -- * > SHA256SUMS)
 
       - uses: actions/upload-artifact@v7
